@@ -107,6 +107,7 @@ public:
   std::string portname_;
 
   //low pass filter variables
+  float range_offset_;
   bool use_low_pass_filter_;
   double T; //sec
   double dt; //ms

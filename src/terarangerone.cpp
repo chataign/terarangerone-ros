@@ -52,13 +52,6 @@ TerarangerOne::TerarangerOne()
   
   double publish_rate_hz;
   std::string portname;
-
-  bool use_low_pass_filter_;
-  //low pass filter variables
-  double T; //sec
-  double dt; //ms
-  double x_;
-  double epsilon;
   
   private_node_handle_.param<std::string>("portname", portname, "/dev/ttyUSB0");
   private_node_handle_.param<std::string>("frame_id", range_msg_.header.frame_id, "base_range");
@@ -66,6 +59,7 @@ TerarangerOne::TerarangerOne()
   private_node_handle_.param<float>("min_range", range_msg_.min_range, 0.2);
   private_node_handle_.param<float>("max_range", range_msg_.max_range, 14.0);
   private_node_handle_.param<float>("field_of_view", range_msg_.field_of_view, 0.0593);
+  private_node_handle_.param<float>("range_offset", range_offset_, 0.0 );
 
   private_node_handle_.param<bool>("use_low_pass_filter", use_low_pass_filter_, false);
   private_node_handle_.param<double>("T", T, 0.5);
@@ -157,15 +151,16 @@ void TerarangerOne::serialDataCallback(uint8_t single_character)
           
           if ( interval > publish_interval_ )
           {
+              if(use_low_pass_filter_)
+              { 
+                ROS_INFO_ONCE("teraranger: using low-pass filter");
+                x_ = lowPassFilter(range_m, x_, dt, T);
+                range_m = x_;
+              }
+
               range_msg_.header.stamp = time_now;
               range_msg_.header.seq = seq_ctr++;
-              range_msg_.range = range_m;
-
-              if(use_low_pass_filter_)
-              {
-                x_ = lowPassFilter(range_m, x_, dt, T);
-                range_msg_.range = x_;
-              }
+              range_msg_.range = range_m + range_offset_;
               range_publisher_.publish(range_msg_);
           }
         }
