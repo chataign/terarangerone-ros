@@ -92,7 +92,7 @@ public:
 
   bool loadParameters();
   void setMode(char c);
-
+  double lowPassFilter(double x, double y0, double dt, double T);  // Taken from http://en.wikipedia.org/wiki/Low-pass_filter infinite-impulse-response (IIR) single-pole low-pass filter.
   ros::NodeHandle nh_;
   ros::Publisher range_publisher_;
 
@@ -105,6 +105,13 @@ public:
   sensor_msgs::Range range_msg_;
   ros::Duration publish_interval_;
   std::string portname_;
+
+  //low pass filter variables
+  bool use_low_pass_filter_;
+  double T; //sec
+  double dt; //ms
+  double x_;
+  double epsilon;
 };
 
 } // namespace terarangerone
